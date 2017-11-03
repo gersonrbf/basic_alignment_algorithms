@@ -352,6 +352,7 @@ public class GUIv2 extends javax.swing.JFrame
                     .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             );
 
+            m_errorLabel.setEditable(false);
             m_errorLabel.setBackground(javax.swing.UIManager.getDefaults().getColor("Panel.background"));
             m_errorLabel.setForeground(new java.awt.Color(255, 0, 0));
             jScrollPane5.setViewportView(m_errorLabel);
@@ -430,6 +431,23 @@ public class GUIv2 extends javax.swing.JFrame
         match = Integer.parseInt(m_matchField.getText());
         mismatch = Integer.parseInt(m_mismatchField.getText());
         gap = Integer.parseInt(m_gapField.getText());
+        
+        /*
+        //This must be changed to the validation part and generate a 
+        //appropriate error message
+        try
+        {
+            match = Integer.parseInt(m_matchField.getText());
+            mismatch = Integer.parseInt(m_mismatchField.getText());
+            gap = Integer.parseInt(m_gapField.getText());
+        }
+        catch(Exception e)
+        {
+            System.err.print(e.getMessage());
+            return;
+        }
+        */
+        
         if(m_anaLocalAlignment&&(alignmentType==EAlignmentType.Local))
             alignmentType = EAlignmentType.Ana;
         //System.out.println(alignmentType);
@@ -481,6 +499,7 @@ public class GUIv2 extends javax.swing.JFrame
     private boolean gapValidation()
     {
         boolean result = parametersInputValidation(m_gapField,"m_gapField",m_fieldErrorMap);
+        //result = result && negativeNumberValidation(m_gapField,"m_gapField",m_fieldErrorMap);
         addErrorMessage(m_fieldErrorMap,"m_gapField");
         return result;
     }
@@ -537,11 +556,35 @@ public class GUIv2 extends javax.swing.JFrame
         {
            msg = "Parameters fields can't be empty.";
            result = false;
-        }else if(!sequence.matches("[-]*[0-9]+"))
+        }
+        else
+        {
+            if(variableName.equalsIgnoreCase("m_matchField") && !sequence.matches("[0-9]+"))
+            {
+                msg = "The Match parameter must be a positive integer.";
+                result = false;
+            }
+            else if((variableName.equalsIgnoreCase("m_mismatchField")||variableName.equalsIgnoreCase("m_gapField"))
+                    &&(!sequence.matches("-[0-9]+")&&!sequence.equalsIgnoreCase("0")))
+            {
+                msg = "The Mismatch and Gap parameters must be negative integers.";
+                result = false;
+            }
+            
+            if(sequence.length()>5)
+            {
+                msg = "Please use number with 5 digits or less in the parameters fields.";
+                result = false;
+            }
+            
+        }
+        /*
+        else if(!sequence.matches("[-]*[0-9]+"))
         {
            msg = "The parameters must contain only numbers.";
            result = false;
-        }        
+        }
+        */
         
        if(result)
        {
@@ -556,7 +599,35 @@ public class GUIv2 extends javax.swing.JFrame
 
        return result;
     }
-    
+
+    /*
+    private boolean negativeNumberValidation(JTextField textField, String variableName ,HashMap<String,String> map)
+    {
+        String sequence = textField.getText();        
+        boolean result = true;
+        String msg = "";
+
+        if(!sequence.matches("-[0-9]+"))
+        {
+           msg = "The parameters GAP and Mismatch must contain negatives numbers.";
+           result = false;
+        }                
+        
+       if(result)
+       {
+           textField.setBackground(new Color(255, 255, 255));           
+           map.replace(variableName,"");
+       }
+       else
+       {
+           textField.setBackground(new Color(255, 120, 120));
+           map.replace(variableName, msg);
+       }
+
+       return result;
+    }
+    */
+
     private void addErrorMessage(HashMap<String,String> map,String key)
     {
         String temp = "";
@@ -565,8 +636,15 @@ public class GUIv2 extends javax.swing.JFrame
         {
             String value = entry.getValue();
             //System.out.println(value);
+            /*
             if(!temp.contains(value))        
                 temp+="\n"+value;
+            */
+            if(temp.isEmpty())
+                temp=value;
+            else if(!temp.contains(value))        
+                temp+="\n"+value;
+            
         }
         m_errorLabel.setText(temp);
     }
